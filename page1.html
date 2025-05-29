@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Flashcards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8f9fb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .card-container {
+      perspective: 1000px;
+      width: 300px;
+      height: 200px;
+      margin-bottom: 2rem;
+    }
+
+    .flashcard {
+      width: 100%;
+      height: 100%;
+      border-radius: 1rem;
+      background-color: #fff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #333;
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .flashcard.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      border-radius: 1rem;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    .front {
+      background-color: #fff;
+    }
+
+    .back {
+      background-color: #e3e7eb;
+      transform: rotateY(180deg);
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .controls button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background-color: #e0e0e5;
+      color: #000;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .controls button:hover {
+      background-color: #d1d1d6;
+    }
+
+    #prev-btn::before {
+      content: '←';
+      font-size: 1.5rem;
+    }
+
+    #next-btn::before {
+      content: '→';
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card-container">
+    <div class="flashcard" id="flashcard">
+      <div class="card-face front" id="card-front">Question</div>
+      <div class="card-face back" id="card-back">Answer</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="prev-btn" title="Précédent"></button>
+    <button id="next-btn" title="Suivant"></button>
+  </div>
+
+  <script>
+    const flashcard = document.getElementById('flashcard');
+    const front = document.getElementById('card-front');
+    const back = document.getElementById('card-back');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    const cards = [
+      { front: "Bonjour (en espagnol)", back: "Hola" },
+{ front: "Bonsoir (en espagnol)", back: "Buenas noches" },
+{ front: "Bonne après-midi (en espagnol)", back: "Buenas tardes" },
+{ front: "Salut (familier, en espagnol)", back: "¡Qué tal!" },
+{ front: "Au revoir (en espagnol)", back: "Adiós" },
+{ front: "À bientôt (en espagnol)", back: "Hasta pronto" },
+{ front: "À demain (en espagnol)", back: "Hasta mañana" },
+{ front: "Merci (en espagnol)", back: "Gracias" },
+{ front: "S'il vous plaît (en espagnol)", back: "Por favor" },
+{ front: "De rien (en espagnol)", back: "De nada" },
+
+{ front: "Oui (en espagnol)", back: "Sí" },
+{ front: "Non (en espagnol)", back: "No" },
+{ front: "Peut-être (en espagnol)", back: "Tal vez" },
+{ front: "Je ne sais pas (en espagnol)", back: "No sé" },
+{ front: "D'accord (en espagnol)", back: "Vale" },
+{ front: "Pardon / Excusez-moi (en espagnol)", back: "Perdón / Disculpe" },
+{ front: "Je suis désolé(e) (en espagnol)", back: "Lo siento" },
+{ front: "Comment ça va ? (en espagnol)", back: "¿Cómo estás?" },
+{ front: "Ça va bien (en espagnol)", back: "Estoy bien" },
+{ front: "Et toi ? (en espagnol)", back: "¿Y tú?" },
+
+{ front: "Je m'appelle... (en espagnol)", back: "Me llamo..." },
+{ front: "Je suis... (en espagnol)", back: "Soy..." },
+{ front: "J'ai ... ans (en espagnol)", back: "Tengo ... años" },
+{ front: "Où est...? (en espagnol)", back: "¿Dónde está...?" },
+{ front: "Qu'est-ce que c'est ? (en espagnol)", back: "¿Qué es esto?" },
+{ front: "Je comprends (en espagnol)", back: "Entiendo" },
+{ front: "Je ne comprends pas (en espagnol)", back: "No entiendo" },
+{ front: "Parlez-vous français ? (en espagnol)", back: "¿Habla francés?" },
+{ front: "Un peu (en espagnol)", back: "Un poco" },
+{ front: "Je ne parle pas espagnol (en espagnol)", back: "No hablo español" },
+
+{ front: "Aujourd'hui (en espagnol)", back: "Hoy" },
+{ front: "Demain (en espagnol)", back: "Mañana" },
+{ front: "Hier (en espagnol)", back: "Ayer" },
+{ front: "Maintenant (en espagnol)", back: "Ahora" },
+{ front: "Toujours (en espagnol)", back: "Siempre" },
+{ front: "Jamais (en espagnol)", back: "Nunca" },
+{ front: "Parfois (en espagnol)", back: "A veces" },
+{ front: "Tôt (en espagnol)", back: "Temprano" },
+{ front: "Tard (en espagnol)", back: "Tarde" },
+{ front: "Heure (en espagnol)", back: "Hora" },
+
+{ front: "Maison (en espagnol)", back: "Casa" },
+{ front: "Voiture (en espagnol)", back: "Coche" },
+{ front: "École (en espagnol)", back: "Escuela" },
+{ front: "Travail (en espagnol)", back: "Trabajo" },
+{ front: "Ville (en espagnol)", back: "Ciudad" },
+{ front: "Rue (en espagnol)", back: "Calle" },
+{ front: "Magasin (en espagnol)", back: "Tienda" },
+{ front: "Marché (en espagnol)", back: "Mercado" },
+{ front: "Restaurant (en espagnol)", back: "Restaurante" },
+{ front: "Toilettes (en espagnol)", back: "Baños" },
+
+{ front: "Pain (en espagnol)", back: "Pan" },
+{ front: "Eau (en espagnol)", back: "Agua" },
+{ front: "Vin (en espagnol)", back: "Vino" },
+{ front: "Fromage (en espagnol)", back: "Queso" },
+{ front: "Fruits (en espagnol)", back: "Frutas" },
+{ front: "Légumes (en espagnol)", back: "Verduras" },
+{ front: "Viande (en espagnol)", back: "Carne" },
+{ front: "Poisson (en espagnol)", back: "Pescado" },
+{ front: "Petit déjeuner (en espagnol)", back: "Desayuno" },
+{ front: "Dîner (en espagnol)", back: "Cena" },
+
+{ front: "Père (en espagnol)", back: "Padre" },
+{ front: "Mère (en espagnol)", back: "Madre" },
+{ front: "Frère (en espagnol)", back: "Hermano" },
+{ front: "Sœur (en espagnol)", back: "Hermana" },
+{ front: "Ami(e) (en espagnol)", back: "Amigo / Amiga" },
+{ front: "Enfant (en espagnol)", back: "Niño / Niña" },
+{ front: "Mari (en espagnol)", back: "Esposo" },
+{ front: "Femme (épouse, en espagnol)", back: "Esposa" },
+{ front: "Famille (en espagnol)", back: "Familia" },
+{ front: "Personne (en espagnol)", back: "Persona" },
+
+{ front: "Grand (en espagnol)", back: "Grande" },
+{ front: "Petit (en espagnol)", back: "Pequeño" },
+{ front: "Beau (en espagnol)", back: "Guapo" },
+{ front: "Intelligent (en espagnol)", back: "Inteligente" },
+{ front: "Fort (en espagnol)", back: "Fuerte" },
+{ front: "Rapide (en espagnol)", back: "Rápido" },
+{ front: "Lent (en espagnol)", back: "Lento" },
+{ front: "Bon (en espagnol)", back: "Bueno" },
+{ front: "Mauvais (en espagnol)", back: "Malo" },
+{ front: "Heureux (en espagnol)", back: "Feliz" },
+
+{ front: "Aller (verbe, en espagnol)", back: "Ir" },
+{ front: "Venir (verbe, en espagnol)", back: "Venir" },
+{ front: "Avoir (verbe, en espagnol)", back: "Tener" },
+{ front: "Être (verbe, en espagnol - permanent)", back: "Ser" },
+{ front: "Être (verbe, en espagnol - temporaire)", back: "Estar" },
+{ front: "Faire (en espagnol)", back: "Hacer" },
+{ front: "Pouvoir (en espagnol)", back: "Poder" },
+{ front: "Vouloir (en espagnol)", back: "Querer" },
+{ front: "Savoir (en espagnol)", back: "Saber" },
+{ front: "Voir (en espagnol)", back: "Ver" }
+
+    ];
+
+    let current = 0;
+
+    function renderCard() {
+      front.textContent = cards[current].front;
+      back.textContent = cards[current].back;
+      flashcard.classList.remove('flipped');
+    }
+
+    flashcard.addEventListener('click', () => {
+      flashcard.classList.toggle('flipped');
+    });
+
+    prevBtn.addEventListener('click', () => {
+      current = (current - 1 + cards.length) % cards.length;
+      renderCard();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      current = (current + 1) % cards.length;
+      renderCard();
+    });
+
+    renderCard();
+  </script>
+</body>
+</html>
